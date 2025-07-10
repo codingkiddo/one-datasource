@@ -19,8 +19,64 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.Executor;
 
-public class ConnectionWrapper implements Connection {
+import javax.transaction.Transaction;
 
+public class ConnectionWrapper implements Connection {
+	
+	final Connection delegate;
+	final DataSourceImpl dataSource;
+    long lastAccessTime;
+    Transaction tx;
+    boolean invalidate;
+
+    ConnectionWrapper(Connection delegate, DataSourceImpl dataSource, long accessTime) {
+        this.delegate = delegate;
+        this.dataSource = dataSource;
+        this.lastAccessTime = accessTime;
+    }
+    
+    void closeUnderlyingConnection() {
+    	try {
+    		this.delegate.close();
+    	} catch(SQLException ex) {
+    		ex.printStackTrace();
+    	}
+    }
+    
+    SQLException handleException(Throwable t) {
+    	if (t instanceof SQLException) {
+            SQLException se = (SQLException) t;
+            invalidate |= isFatalException(se);
+            return se;
+        }
+        invalidate = true;
+        return new SQLException(t);
+    }
+    
+    private SQLClientInfoException handleClientInfoException(Throwable t) {
+    	this.invalidate = true;
+    	if ( t instanceof SQLClientInfoException ) {
+    		return (SQLClientInfoException) t;
+    	}
+    	throw new IllegalStateException(t);
+    }
+    
+    private void checkValid() throws SQLException {
+    	if (this.invalidate ) {
+    		throw new SQLException("Connection to " + dataSource + " has been invalidated");
+    	}
+    }
+    
+    private static boolean isFatalException(SQLException ex) {
+    	// PK constraint is not 
+//    	https://www.baeldung.com/sql/psqlexception-fatal-sorry-too-many-clients-already-solution
+    	if ( ex.getErrorCode() == 2627 || ex.getErrorCode() == 2601 ) {
+    		return false;
+    	} else if ( ex.getMessage() != null && ex.getMessage().contains("Violation of PRIMARY KEY constraint") ) {
+    		return false;
+    	}
+    	return true;
+    }
 	@Override
 	public <T> T unwrap(Class<T> iface) throws SQLException {
 		// TODO Auto-generated method stub
