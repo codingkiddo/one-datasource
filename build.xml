@@ -18,7 +18,7 @@
     <target name="retrieve-libs" unless="lib.dir.exists">
         <echo message="Downloading external libraries..."/>
         <mkdir dir="${lib.dir}"/>
-        <get src="${download.repo}/javax/transaction/jta/1.1/jta-1.1.jar" dest="${lib.dir}/jta-1.1.jar"/>
+        <get src="${download.repo}/jakarta/transaction/jakarta.transaction-api/1.3.1/jakarta.transaction-api-1.3.1.jar" dest="${lib.dir}/jta-1.1.jar"/>
         <get src="${download.repo}/commons-logging/commons-logging/1.0.3/commons-logging-1.0.3.jar" dest="${lib.dir}/commons-logging-1.0.3.jar"/>
     </target>
 
