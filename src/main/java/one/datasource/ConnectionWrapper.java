@@ -43,6 +43,7 @@ public class ConnectionWrapper implements Connection {
     	}
     }
     
+    
     SQLException handleException(Throwable t) {
     	if (t instanceof SQLException) {
             SQLException se = (SQLException) t;
@@ -85,8 +86,11 @@ public class ConnectionWrapper implements Connection {
 
 	@Override
 	public boolean isWrapperFor(Class<?> iface) throws SQLException {
-		// TODO Auto-generated method stub
-		return false;
+		try {
+            return delegate.isWrapperFor(iface);
+        } catch (Throwable e) {
+            throw handleException(e);
+        }
 	}
 
 	@Override
