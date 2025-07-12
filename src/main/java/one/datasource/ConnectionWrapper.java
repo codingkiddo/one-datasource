@@ -80,8 +80,11 @@ public class ConnectionWrapper implements Connection {
     }
 	@Override
 	public <T> T unwrap(Class<T> iface) throws SQLException {
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return delegate.unwrap(iface);
+		} catch (Throwable e) {
+			throw handleException(e);
+		}
 	}
 
 	@Override
